@@ -191,9 +191,6 @@ services:
     prosody:
         image: jitsi/prosody:${JITSI_IMAGE_VERSION:-unstable}
         restart: ${RESTART_POLICY:-unless-stopped}
-        depends_on:
-            prosody-config-reset:
-                condition: service_completed_successfully
         expose:
             - '${XMPP_PORT:-5222}'
             - '${PROSODY_S2S_PORT:-5269}'
@@ -333,6 +330,8 @@ services:
             - XMPP_RECORDER_DOMAIN
             - XMPP_SERVER_S2S_PORT
             - XMPP_SPEAKERSTATS_MODULES
+        depends_on:
+            - prosody-config-reset
         networks:
             meet.jitsi:
                 aliases:
@@ -505,20 +504,18 @@ services:
         volumes:
         - ${CONFIG}/prosody/config:/config:rw
         command: >
-        sh -lc '
-            f=/config/prosody.cfg.lua;
-            if [ -f "$f" ]; then
-            awk "
-                NR==213{
-                print \"  http_ports = { 5280 };  -- prosody http/ws порт внутри сети\";
-                next
-                }
-                {print}
-            " \"$f\" > \"$f.tmp\" && mv \"$f.tmp\" \"$f\";
-            fi
-        '
-
-
+            sh -lc '
+                f=/config/prosody.cfg.lua;
+                if [ -f "$f" ]; then
+                awk "
+                    NR==213{
+                    print \"  http_ports = { 5280 };  -- prosody http/ws порт внутри сети\";
+                    next
+                    }
+                    {print}
+                " \"$f\" > \"$f.tmp\" && mv \"$f.tmp\" \"$f\";
+                fi
+            '
 
 # Custom network so all services can communicate using a FQDN
 networks:
