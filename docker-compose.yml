@@ -191,6 +191,8 @@ services:
     prosody:
         image: jitsi/prosody:${JITSI_IMAGE_VERSION:-unstable}
         restart: ${RESTART_POLICY:-unless-stopped}
+        depends_on:
+        - prosody-config-fix
         expose:
             - '${XMPP_PORT:-5222}'
             - '${PROSODY_S2S_PORT:-5269}'
@@ -495,6 +497,25 @@ services:
             - prosody
         networks:
             meet.jitsi:
+
+    prosody-config-fix:
+        image: alpine:3.20
+        restart: "no"
+        volumes:
+            - ${CONFIG}/prosody/config:/config:rw
+        command: >
+            sh -lc '
+            f=/config/prosody.cfg.lua;
+            if [ -f "$f" ]; then
+                # если в строке с http_ports затесался комментарий с # — чиним на Lua-комментарий и закрывающую скобку
+                awk "{
+                if (\$0 ~ /^\\s*http_ports\\s*=\\s*\\{[[:space:]]*5280/ && \$0 ~ /#/) {
+                    print \"  http_ports = { 5280 };  -- prosody http/ws порт внутри сети\";
+                } else { print }
+                }" \"$f\" > \"$f.tmp\" && mv \"$f.tmp\" \"$f\";
+            fi
+            '
+
 
 # Custom network so all services can communicate using a FQDN
 networks:
