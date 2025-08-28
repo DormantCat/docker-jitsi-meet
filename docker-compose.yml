@@ -503,12 +503,20 @@ services:
         image: alpine:3.20
         restart: "no"
         volumes:
-            - ${CONFIG}/prosody/config:/config:rw
+        - ${CONFIG}/prosody/config:/config:rw
         command: >
-            sh -lc '
-            # удаляем битый конфиг; при старте prosody он будет сгенерен из ENV
-            rm -f /config/prosody.cfg.lua || true
-            '
+        sh -lc '
+            f=/config/prosody.cfg.lua;
+            if [ -f "$f" ]; then
+            awk "
+                NR==213{
+                print \"  http_ports = { 5280 };  -- prosody http/ws порт внутри сети\";
+                next
+                }
+                {print}
+            " \"$f\" > \"$f.tmp\" && mv \"$f.tmp\" \"$f\";
+            fi
+        '
 
 
 
