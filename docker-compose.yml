@@ -501,5 +501,4 @@ services:
 # Custom network so all services can communicate using a FQDN
 networks:
   meet.jitsi:
-    external: true
     name: meet.jitsi
