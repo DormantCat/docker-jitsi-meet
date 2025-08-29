@@ -13,6 +13,7 @@ services:
             - ${CONFIG}/web/load-test:/usr/share/jitsi-meet/load-test:Z
         environment:
             - NGINX_RESOLVER=127.0.0.11
+            - XMPP_SERVER=prosody
             - AMPLITUDE_ID
             - ANALYTICS_SCRIPT_URLS
             - ANALYTICS_WHITELISTED_EVENTS
@@ -102,7 +103,7 @@ services:
             - ENABLE_TCC
             - ENABLE_TRANSCRIPTIONS
             - ENABLE_VLA
-            - ENABLE_XMPP_WEBSOCKET
+            - ENABLE_XMPP_WEBSOCKET=1
             - ENABLE_JAAS_COMPONENTS
             - ETHERPAD_PUBLIC_URL
             - ETHERPAD_URL_BASE
