@@ -185,9 +185,8 @@ services:
             - WHITEBOARD_COLLAB_SERVER_URL_BASE
         networks:
             meet.jitsi:
-                aliases:
-                    - ${XMPP_SERVER:-xmpp.meet.jitsi}
         depends_on:
+            - prosody
             - jvb
 
     # XMPP server
