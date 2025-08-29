@@ -185,6 +185,8 @@ services:
             - WHITEBOARD_COLLAB_SERVER_URL_BASE
         networks:
             meet.jitsi:
+                aliases:
+                    - ${XMPP_SERVER:-xmpp.meet.jitsi}
         depends_on:
             - jvb
 
@@ -334,8 +336,6 @@ services:
         networks:
             meet.jitsi:
                 aliases:
-                    - prosody
-                    - xmpp.meet.jitsi
                     - ${XMPP_SERVER:-xmpp.meet.jitsi}
 
     # Focus component
