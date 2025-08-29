@@ -124,7 +124,6 @@ services:
             - MATOMO_SITE_ID
             - MICROSOFT_API_APP_CLIENT_ID
             - NGINX_KEEPALIVE_TIMEOUT
-            - NGINX_RESOLVER
             - NGINX_WORKER_PROCESSES
             - NGINX_WORKER_CONNECTIONS
             - PEOPLE_SEARCH_URL
@@ -334,8 +333,9 @@ services:
             - XMPP_SPEAKERSTATS_MODULES
         networks:
             meet.jitsi:
-                aliases:
-                    - ${XMPP_SERVER:-xmpp.meet.jitsi}
+              aliases:
+                - xmpp.meet.jitsi
+                - prosody
 
     # Focus component
     jicofo:
@@ -500,4 +500,5 @@ services:
 
 # Custom network so all services can communicate using a FQDN
 networks:
-    meet.jitsi:
+  meet.jitsi:
+    name: meet.jitsi
