@@ -493,19 +493,23 @@ services:
         depends_on:
             - prosody
         networks: {}
-    jka:
-          image: ghcr.io/nordeck/jitsi-keycloak-adapter:v20250314
-          restart: unless-stopped
-          environment:
-            PORT: 9001
-            KEYCLOAK_ORIGIN: https://sso.labexp.xyz
-            KEYCLOAK_REALM: LabExp
-            KEYCLOAK_CLIENT_ID: k8s-meet
-            JITSI_ORIGIN: https://meet.labexp.team
-            ALLOW_GUESTS: "false"
-            SECURE_COOKIE: "true"
-            BASE_PATH: /auth
-            LOG_LEVEL: info
-          # публикуем только на loopback хоста:
-          ports:
-            - "127.0.0.1:9001:9001"
+  jka:
+    image: ghcr.io/nordeck/jitsi-keycloak-adapter:v20250314
+    restart: unless-stopped
+    environment:
+      PORT: 9001
+      KEYCLOAK_ORIGIN: https://sso.labexp.xyz
+      KEYCLOAK_REALM: LabExp
+      KEYCLOAK_CLIENT_ID: k8s-meet
+      JITSI_ORIGIN: https://meet.labexp.team
+      ALLOW_GUESTS: "false"
+      SECURE_COOKIE: "true"
+      BASE_PATH: /auth
+      LOG_LEVEL: info
+      JWT_ALG: HS256
+      JWT_APP_ID: ${JWT_APP_ID}
+      JWT_APP_SECRET: ${JWT_APP_SECRET}
+    ports:
+      - "127.0.0.1:9001:9001"
+    depends_on:
+      - prosody
