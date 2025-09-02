@@ -1,11 +1,13 @@
+version: "3.8"
+
 services:
-  # Frontend (Jitsi web)
+  # === Jitsi Web (frontend) ===
   web:
     image: jitsi/web:${JITSI_IMAGE_VERSION:-unstable}
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: unless-stopped
     ports:
-      - '${HTTP_PORT}:80'
-      - '${HTTPS_PORT}:443'
+      - "127.0.0.1:${HTTP_PORT}:80"
+      - "127.0.0.1:${HTTPS_PORT}:443"
     links:
       - prosody:xmpp.meet.jitsi
     volumes:
@@ -13,97 +15,51 @@ services:
       - ${CONFIG}/web/crontabs:/var/spool/cron/crontabs:Z
       - ${CONFIG}/transcripts:/usr/share/jitsi-meet/transcripts:Z
       - ${CONFIG}/web/load-test:/usr/share/jitsi-meet/load-test:Z
-    environment:
-      - NGINX_RESOLVER=127.0.0.11
-      - XMPP_SERVER=prosody
-      # оставляем остальной список env как у тебя, он безобиден
-      - ENABLE_XMPP_WEBSOCKET=1
-      - ENABLE_COLIBRI_WEBSOCKET=1
-      - ENABLE_AUTH
-      - AUTH_TYPE
-      - ENABLE_GUESTS
-      - PUBLIC_URL
-      - TZ
+    env_file: .env
     depends_on:
       - prosody
       - jvb
 
-  # XMPP (Prosody)
+  # === Prosody (XMPP) ===
   prosody:
     image: jitsi/prosody:${JITSI_IMAGE_VERSION:-unstable}
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: unless-stopped
     expose:
-      - '${XMPP_PORT:-5222}'
-      - '${PROSODY_S2S_PORT:-5269}'
-      - '5347'
-      - '${PROSODY_HTTP_PORT:-5280}'
+      - "${XMPP_PORT:-5222}"
+      - "${PROSODY_S2S_PORT:-5269}"
+      - "5347"
+      - "${PROSODY_HTTP_PORT:-5280}"
     volumes:
       - ${CONFIG}/prosody/config:/config:Z
       - ${CONFIG}/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
-    environment:
-      # важное для JWT/гостей
-      - ENABLE_AUTH
-      - AUTH_TYPE
-      - ENABLE_GUESTS
-      - JWT_APP_ID
-      - JWT_APP_SECRET
-      - JWT_SIGN_TYPE
-      - JWT_ACCEPTED_ISSUERS
-      - JWT_ACCEPTED_AUDIENCES
-      # базовое
-      - XMPP_DOMAIN
-      - XMPP_AUTH_DOMAIN
-      - XMPP_GUEST_DOMAIN
-      - XMPP_MUC_DOMAIN
-      - XMPP_INTERNAL_MUC_DOMAIN
-      - PUBLIC_URL
-      - TZ
+    env_file: .env
 
-  # Focus (Jicofo)
+  # === Jicofo ===
   jicofo:
     image: jitsi/jicofo:${JITSI_IMAGE_VERSION:-unstable}
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: unless-stopped
     ports:
-      - '0.0.0.0:${JICOFO_REST_PORT:-8888}:8888'
+      - "0.0.0.0:${JICOFO_REST_PORT:-8888}:8888"
     volumes:
       - ${CONFIG}/jicofo:/config:Z
-    environment:
-      - ENABLE_AUTH
-      - AUTH_TYPE
-      - ENABLE_AUTO_OWNER
-      - JICOFO_AUTH_PASSWORD
-      - XMPP_DOMAIN
-      - XMPP_AUTH_DOMAIN
-      - XMPP_INTERNAL_MUC_DOMAIN
-      - XMPP_MUC_DOMAIN
-      - XMPP_SERVER
-      - TZ
+    env_file: .env
     depends_on:
       - prosody
 
-  # Video bridge (JVB)
+  # === JVB (VideoBridge) ===
   jvb:
     image: jitsi/jvb:${JITSI_IMAGE_VERSION:-unstable}
-    restart: ${RESTART_POLICY:-unless-stopped}
+    restart: unless-stopped
     ports:
-      - '${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp'
-      - '0.0.0.0:${JVB_COLIBRI_PORT:-8080}:8080'
+      - "${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp"
+      - "0.0.0.0:${JVB_COLIBRI_PORT:-8080}:8080"
     volumes:
       - ${CONFIG}/jvb:/config:Z
-    environment:
-      - DOCKER_HOST_ADDRESS
-      - ENABLE_COLIBRI_WEBSOCKET
-      - JVB_PORT
-      - JVB_TCP_PORT
-      - JVB_XMPP_PORT
-      - JVB_XMPP_SERVER
-      - JVB_AUTH_PASSWORD
-      - PUBLIC_URL
-      - TZ
+    env_file: .env
     depends_on:
       - prosody
 
-  # Jitsi Keycloak Adapter (Nordeck)
+  # === Jitsi Keycloak Adapter (Nordeck) ===
   jka:
     image: ghcr.io/nordeck/jitsi-keycloak-adapter:v20250314
     restart: unless-stopped
@@ -111,22 +67,22 @@ services:
       # где слушает адаптер
       PORT: 9001
 
-      # Keycloak
+      # Keycloak (внешний)
       KEYCLOAK_ORIGIN: https://sso.labexp.xyz
       KEYCLOAK_REALM: LabExp
       KEYCLOAK_CLIENT_ID: k8s-meet
+      KEYCLOAK_MODE: query
 
-      # публичный адрес Jitsi (должен ровно совпадать с PUBLIC_URL)
-      JITSI_ORIGIN: https://meet.labexp.team
+      # публичный адрес Jitsi
+      JITSI_ORIGIN: ${PUBLIC_URL}
 
       # базовый путь и поведение
       BASE_PATH: /auth
       ALLOW_GUESTS: "false"
       SECURE_COOKIE: "true"
       LOG_LEVEL: info
-      KEYCLOAK_MODE: query
 
-      # JWT для Jitsi (HS256, общий секрет с Prosody)
+      # JWT для Jitsi (HS256 по общему секрету)
       JWT_ALG: HS256
       JWT_HASH: SHA-256
       JWT_APP_ID: ${JWT_APP_ID}
@@ -134,5 +90,3 @@ services:
       JWT_EXP_SECOND: 3600
     ports:
       - "127.0.0.1:9001:9001"
-    depends_on:
-      - prosody
