@@ -15,7 +15,7 @@ services:
       - ${CONFIG}/web/crontabs:/var/spool/cron/crontabs:Z
       - ${CONFIG}/transcripts:/usr/share/jitsi-meet/transcripts:Z
       - ${CONFIG}/web/load-test:/usr/share/jitsi-meet/load-test:Z
-    # Критичные флаги — прямо в environment (чтобы Coolify точно прокинул)
+    # Критично продублировано тут, чтобы Coolify точно подал в контейнер
     environment:
       ENABLE_AUTH: "1"
       AUTH_TYPE: "jwt"
@@ -45,6 +45,7 @@ services:
     volumes:
       - ${CONFIG}/prosody/config:/config:Z
       - ${CONFIG}/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
+    # Важные JWT-параметры для валидации токена
     environment:
       ENABLE_AUTH: "1"
       AUTH_TYPE: "jwt"
@@ -95,13 +96,13 @@ services:
       KEYCLOAK_MODE: query
       JITSI_ORIGIN: ${PUBLIC_URL}
 
-      # Важно: под /oidc (совместимо с их body.html)
+      # ВАЖНО: префикс /oidc — совпадает с клиентским скриптом
       BASE_PATH: /oidc
       ALLOW_GUESTS: "false"
       SECURE_COOKIE: "true"
       LOG_LEVEL: info
 
-      # HS256 JWT (общий секрет с Prosody/Jitsi)
+      # HS256 JWT (общий с Prosody/Jitsi)
       JWT_ALG: HS256
       JWT_HASH: SHA-256
       JWT_APP_ID: ${JWT_APP_ID}
