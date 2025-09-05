@@ -76,8 +76,8 @@ services:
       # публичный адрес Jitsi
       JITSI_ORIGIN: ${PUBLIC_URL}
 
-      # базовый путь и поведение
-      BASE_PATH: /auth
+      # базовый путь — ВАЖНО: /oidc (совместимо с их шаблоном body.html)
+      BASE_PATH: /oidc
       ALLOW_GUESTS: "false"
       SECURE_COOKIE: "true"
       LOG_LEVEL: info
@@ -90,3 +90,4 @@ services:
       JWT_EXP_SECOND: 3600
     ports:
       - "127.0.0.1:9001:9001"
+    env_file: .env
