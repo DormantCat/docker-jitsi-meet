@@ -15,7 +15,7 @@ services:
       - ${CONFIG}/web/crontabs:/var/spool/cron/crontabs:Z
       - ${CONFIG}/transcripts:/usr/share/jitsi-meet/transcripts:Z
       - ${CONFIG}/web/load-test:/usr/share/jitsi-meet/load-test:Z
-      - ./web-root:/usr/share/jitsi-meet:rw
+      - ${CONFIG}/web-ui:/usr/share/jitsi-meet:rw
     # Критично продублировано тут, чтобы Coolify точно подал в контейнер
     environment:
       ENABLE_AUTH: "1"
