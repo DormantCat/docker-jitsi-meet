@@ -18,7 +18,7 @@ services:
       - ${CONFIG}/web-ui:/usr/share/jitsi-meet:rw
     # Критично продублировано тут, чтобы Coolify точно подал в контейнер
     environment:
-      ENABLE_AUTH: "1"
+      ENABLE_AUTH: "0"
       AUTH_TYPE: "jwt"
       ENABLE_GUESTS: "1"
       ENABLE_AUTO_OWNER: "0"
